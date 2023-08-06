@@ -1,43 +1,54 @@
-//Server Creation
+const express= require("express");
 
-const http= require("http");
+const app= express();
+
+// Appln will now use json format for data transfer
+app.use(express.json());
 
 const port= 8081;
 
-const toDoList= ["Need to learn", " Need to code"];
+const toDoList= ["Need to learn", "Need to code"];
 
-http.createServer((req, res) => {
-  //  res.writeHead(200, {"Content-Type": "text/html"});
-  //  res.write("<h4>Hello, this is from my new server</h4>");
-  //  res.end();
-      const {method, url}= req;
- //   console.log(method, url);
- //   res.end();
-      if(url=== "/todos"){
-        // http://localhost:8081/todos
-        if(method === "GET") {
-            res.writeHead(200, {"Content-Type": "text/html"});
-            res.write(toDoList.toString());
-            } else if(method === "POST"){
-                let body= "";
-                req.on('error', (err) => {
-                    console.log(err);
-                }).on('data', (chunk) => {
-                    body += chunk;
-                  //  console.log(chunk);
-                }).on('end', () => {
-                    body= JSON.parse(body);
-                    console.log("body data", body);
-                });
-            } else {
-            res.writeHead(501);
-           }    
-        } else {
-            res.writeHead(404);
-        }
-      res.end();
-}).listen(port, () => {
-    console.log(`My NodeJS server started on port ${port}`);
+// http://localhost:8081/todos
+
+app.all("*", (req, res)=> {
+    res.status(404).send();
 });
 
-// http://localhost:8081
+app.get("/todos", (re, res)=> {
+    res.status(200).send(toDoList);
+});
+
+app.post("/todos", (req, res)=> {
+    let newToDoItem= req.body.item;
+
+    toDoList.push(newToDoItem);
+    //res.status(201).send("Task Added");
+
+    res.status(201).send({
+        message: "The to do got added successfully",
+    });
+});
+
+app.delete("/todos", (req, res)=> {
+    const itemToDelete= req.body.item;
+    toDoList.find((element, index)=> {
+        if(element === itemToDelete){
+            toDoList.splice(index, 1);
+        }
+    });
+    res.status(202).send({
+        message: `Deleted item- ${req.body.item}`,
+    });
+});
+
+app.all("/todos", (req, res)=> {
+    res.status(501).send();
+});
+
+
+
+app.listen(port, ()=> {
+    console.log(`Node JS server started on ${port}`);
+});
+
